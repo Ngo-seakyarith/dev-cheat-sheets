@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Laravel 12 Cheat Sheet PDF Generator    def create_command_table(self, title, commands, col_widths=None, important_commands=None):
-Creates a colorful, well-formatted 2-page A4 PDF Laravel command reference
+Laravel 11 Cheat Sheet PDF Generator
+Creates a comprehensive, colorful, well-formatted A4 PDF Laravel command reference
+Includes modern Laravel features, Docker Sail, API development, and best practices
 """
 
 from reportlab.lib.pagesizes import A4
@@ -25,13 +26,14 @@ class LaravelCheatSheetPDF:
         self.styles = getSampleStyleSheet()
         self.story = []
 
-        # Define color scheme (Laravel colors)
+        # Define color scheme (Laravel colors + new green for Laravel 11)
         self.colors = {
             'header': HexColor('#FF2D20'),      # Laravel Red
             'section': HexColor('#F39C12'),     # Orange
             'basic_command': HexColor('#E74C3C'),     # Red for basic commands
             'advanced_command': HexColor('#3498DB'),  # Blue for commands with options/flags
             'important_command': HexColor('#E67E22'), # Orange for important commands
+            'new_feature': HexColor('#27AE60'),       # Green for Laravel 11 features
             'description': HexColor('#2C3E50'), # Dark gray
             'background': HexColor('#F8F9FA'),  # Light gray
             'accent': HexColor('#3498DB'),      # Blue
@@ -122,15 +124,16 @@ class LaravelCheatSheetPDF:
 
     def add_title(self):
         """Add the main title"""
-        title = Paragraph("Laravel Cheat Sheet", self.styles['MainTitle'])
+        title = Paragraph("Laravel 11 Cheat Sheet", self.styles['MainTitle'])
         self.story.append(title)
         self.story.append(Spacer(1, 0.3*cm))
         
         # Add color legend
         legend_text = """
         <b>Color Legend:</b> 
-        <font name='Courier-Bold' color='#3498DB'>Blue = Common Project Commands</font> | 
-        <font name='Courier-Bold' color='#E74C3C'>Red = Rarely Used/Advanced Commands</font>
+        <font name='Courier-Bold' color='#3498DB'>Blue = Essential/Daily Commands</font> | 
+        <font name='Courier-Bold' color='#E74C3C'>Red = Advanced/Specialized Commands</font> |
+        <font name='Courier-Bold' color='#27AE60'>Green = New in Laravel 11</font>
         """
         legend_para = Paragraph(legend_text, self.styles['Normal'])
         
@@ -158,13 +161,18 @@ class LaravelCheatSheetPDF:
             ("composer create-project laravel/laravel app-name", "Create new Laravel project", '#3498DB'),  # Blue - Popular
             ("composer global require laravel/installer", "Install Laravel installer globally", '#E74C3C'),  # Red - One-time setup
             ("laravel new app-name", "Create new Laravel project using installer", '#3498DB'),  # Blue - Popular
+            ("laravel new app-name --git", "Create new project with git repo", '#27AE60'),  # Green - Laravel 11
+            ("laravel new app-name --database=mysql", "Create project with specific database", '#27AE60'),  # Green - Laravel 11
             ("php artisan serve", "Start development server", '#3498DB'),  # Blue - Very Popular
+            ("php artisan serve --host=0.0.0.0 --port=8080", "Start server with custom host/port", '#3498DB'),  # Blue - Common
             ("php artisan --version", "Check Laravel version", '#3498DB'),  # Blue - Popular
             ("composer update", "Update Laravel dependencies", '#3498DB'),  # Blue - Popular
             ("composer install", "Install project dependencies", '#3498DB'),  # Blue - Popular
+            ("composer install --no-dev --optimize-autoloader", "Production install", '#3498DB'),  # Blue - Production
             ("npm install", "Install Node.js dependencies", '#3498DB'),  # Blue - Popular
             ("npm run dev", "Compile assets for development", '#3498DB'),  # Blue - Popular
             ("npm run build", "Compile assets for production", '#3498DB'),  # Blue - Regular use
+            ("npm run watch", "Watch and recompile assets", '#3498DB'),  # Blue - Development
         ]
         self.create_command_table("Installation & Setup", commands)
 
@@ -421,31 +429,187 @@ class LaravelCheatSheetPDF:
         ]
         self.create_command_table("Deployment & Optimization", commands)
 
+    def add_queue_commands(self):
+        """Add queue and job commands"""
+        commands = [
+            ("php artisan queue:work", "Start processing jobs", '#3498DB'),  # Blue - Used daily in production
+            ("php artisan queue:listen", "Listen for new jobs", '#3498DB'),  # Blue - Common for development
+            ("php artisan queue:restart", "Restart queue workers", '#3498DB'),  # Blue - Used in deployment
+            ("php artisan queue:failed", "List failed jobs", '#3498DB'),  # Blue - Common debugging
+            ("php artisan queue:retry all", "Retry all failed jobs", '#3498DB'),  # Blue - Common recovery
+            ("php artisan queue:retry 5", "Retry specific failed job", '#3498DB'),  # Blue - Common debugging
+            ("php artisan queue:flush", "Delete all failed jobs", '#E74C3C'),  # Red - Rarely used
+            ("php artisan queue:clear", "Delete all jobs from queue", '#E74C3C'),  # Red - Dangerous
+            ("php artisan make:job ProcessPayment", "Create new job", '#3498DB'),  # Blue - Common
+            ("php artisan horizon", "Start Laravel Horizon dashboard", '#27AE60'),  # Green - Laravel 11 feature
+        ]
+        self.create_command_table("Queues & Jobs", commands)
+
+    def add_cache_commands(self):
+        """Add cache commands"""
+        commands = [
+            ("Cache::put('key', 'value', 3600)", "Store cache item", '#3498DB'),  # Blue - Used daily
+            ("Cache::get('key')", "Get cache item", '#3498DB'),  # Blue - Used daily
+            ("Cache::remember('key', 3600, fn() => expensive_operation())", "Cache with fallback", '#3498DB'),  # Blue - Very common
+            ("Cache::forget('key')", "Remove cache item", '#3498DB'),  # Blue - Common
+            ("Cache::flush()", "Clear all cache", '#3498DB'),  # Blue - Common debugging
+            ("php artisan cache:clear", "Clear application cache", '#3498DB'),  # Blue - Common debugging
+            ("php artisan cache:forget key", "Forget specific cache key", '#E74C3C'),  # Red - Rarely used
+            ("Cache::tags(['people', 'artists'])->put('John', $john, 60)", "Tagged cache", '#E74C3C'),  # Red - Advanced
+            ("Cache::lock('order-processing')->get(function () {...})", "Cache locks", '#27AE60'),  # Green - Laravel 11 improvement
+        ]
+        self.create_command_table("Cache Management", commands)
+
+    def add_validation_commands(self):
+        """Add validation commands"""
+        commands = [
+            ("$request->validate(['email' => 'required|email'])", "Basic validation", '#3498DB'),  # Blue - Used daily
+            ("'required|string|max:255'", "Common string validation", '#3498DB'),  # Blue - Used daily
+            ("'required|email|unique:users'", "Email validation with unique", '#3498DB'),  # Blue - Very common
+            ("'nullable|integer|min:1'", "Optional integer validation", '#3498DB'),  # Blue - Common
+            ("'required|array|min:1'", "Array validation", '#3498DB'),  # Blue - Common
+            ("'required|file|mimes:jpg,png|max:2048'", "File validation", '#3498DB'),  # Blue - Common for uploads
+            ("'required|date|after:today'", "Date validation", '#3498DB'),  # Blue - Common
+            ("'required|confirmed'", "Password confirmation", '#3498DB'),  # Blue - Common for forms
+            ("'sometimes|nullable|string'", "Conditional validation", '#3498DB'),  # Blue - Common
+            ("Rule::exists('users', 'id')", "Database validation rule", '#3498DB'),  # Blue - Common
+            ("Rule::unique('users')->ignore($user->id)", "Unique with ignore", '#3498DB'),  # Blue - Common for updates
+            ("'required|regex:/^[A-Za-z]+$/'", "Regex validation", '#E74C3C'),  # Red - Advanced
+            ("php artisan make:rule Uppercase", "Custom validation rule", '#E74C3C'),  # Red - Advanced
+        ]
+        self.create_command_table("Validation Rules", commands)
+
+    def add_api_commands(self):
+        """Add API development commands"""
+        commands = [
+            ("php artisan make:resource UserResource", "Create API resource", '#3498DB'),  # Blue - Common for APIs
+            ("php artisan make:resource UserCollection", "Create API collection", '#3498DB'),  # Blue - Common for APIs
+            ("return new UserResource($user)", "Return single resource", '#3498DB'),  # Blue - Used in every API controller
+            ("return UserResource::collection($users)", "Return resource collection", '#3498DB'),  # Blue - Used in every API controller
+            ("php artisan install:api", "Install Laravel Sanctum", '#27AE60'),  # Green - Laravel 11 command
+            ("$user->createToken('token-name')", "Create API token", '#3498DB'),  # Blue - Common for API auth
+            ("Route::middleware('auth:sanctum')->get(...)", "Protect API route", '#3498DB'),  # Blue - Used in every protected API
+            ("return response()->json($data)", "Return JSON response", '#3498DB'),  # Blue - Used in every API controller
+            ("return response()->json($data, 201)", "Return JSON with status", '#3498DB'),  # Blue - Common for created responses
+            ("abort_if($condition, 403)", "Conditional abort", '#3498DB'),  # Blue - Common for API authorization
+            ("$request->expectsJson()", "Check if request expects JSON", '#E74C3C'),  # Red - Advanced API handling
+        ]
+        self.create_command_table("API Development", commands)
+
+    def add_storage_commands(self):
+        """Add storage and file commands"""
+        commands = [
+            ("Storage::disk('public')->put('file.txt', $contents)", "Store file", '#3498DB'),  # Blue - Common
+            ("Storage::get('file.txt')", "Get file contents", '#3498DB'),  # Blue - Common
+            ("Storage::download('file.txt')", "Download file", '#3498DB'),  # Blue - Common
+            ("Storage::delete('file.txt')", "Delete file", '#3498DB'),  # Blue - Common
+            ("Storage::exists('file.txt')", "Check if file exists", '#3498DB'),  # Blue - Common
+            ("$request->file('upload')->store('uploads')", "Store uploaded file", '#3498DB'),  # Blue - Very common
+            ("php artisan storage:link", "Create storage symlink", '#3498DB'),  # Blue - Used in every project with uploads
+            ("Storage::url('file.txt')", "Get file URL", '#3498DB'),  # Blue - Common
+            ("Storage::size('file.txt')", "Get file size", '#E74C3C'),  # Red - Rarely needed
+            ("Storage::lastModified('file.txt')", "Get last modified time", '#E74C3C'),  # Red - Rarely needed
+        ]
+        self.create_command_table("Storage & Files", commands)
+
+    def add_sail_commands(self):
+        """Add Laravel Sail (Docker) commands"""
+        commands = [
+            ("./vendor/bin/sail up", "Start all services", '#27AE60'),  # Green - Laravel 11 improvement
+            ("./vendor/bin/sail up -d", "Start services in background", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail down", "Stop all services", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail artisan migrate", "Run migrations in container", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail composer install", "Install dependencies in container", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail npm run dev", "Run npm in container", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail test", "Run tests in container", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail shell", "Access container shell", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail mysql", "Access MySQL in container", '#27AE60'),  # Green - Laravel 11
+            ("./vendor/bin/sail redis", "Access Redis in container", '#27AE60'),  # Green - Laravel 11
+        ]
+        self.create_command_table("Laravel Sail (Docker)", commands)
+
+    def add_inertia_commands(self):
+        """Add Inertia.js commands"""
+        commands = [
+            ("composer require inertiajs/inertia-laravel", "Install Inertia.js Laravel adapter", '#27AE60'),  # Green - Laravel 11 modern
+            ("php artisan inertia:middleware", "Create Inertia middleware", '#27AE60'),  # Green - Setup command
+            ("npm install @inertiajs/vue3", "Install Inertia Vue 3 adapter", '#27AE60'),  # Green - Modern stack
+            ("npm install @inertiajs/react", "Install Inertia React adapter", '#27AE60'),  # Green - Modern stack
+            ("Inertia::render('Users/Index', ['users' => $users])", "Render Inertia page with data", '#3498DB'),  # Blue - Common
+            ("return inertia('Users/Show', compact('user'))", "Return Inertia response (helper)", '#3498DB'),  # Blue - Very common
+            ("Inertia::location('/dashboard')", "Redirect with Inertia", '#3498DB'),  # Blue - Common for redirects
+            ("$request->header('X-Inertia')", "Check if request is from Inertia", '#E74C3C'),  # Red - Advanced
+            ("Inertia::share('auth.user', fn() => auth()->user())", "Share data globally", '#3498DB'),  # Blue - Common setup
+            ("Inertia::version(fn() => md5_file(public_path('mix-manifest.json')))", "Asset versioning", '#E74C3C'),  # Red - Advanced
+            ("<Head title='Page Title' />", "Set page title (Vue/React)", '#3498DB'),  # Blue - Common
+            ("$page.props.user", "Access shared props (Vue/React)", '#3498DB'),  # Blue - Used daily
+            ("import { Link } from '@inertiajs/vue3'", "Inertia Link component (Vue)", '#3498DB'),  # Blue - Common
+            ("import { router } from '@inertiajs/vue3'", "Inertia router (Vue)", '#3498DB'),  # Blue - Common
+            ("router.visit('/users')", "Programmatic navigation", '#3498DB'),  # Blue - Common
+            ("router.post('/users', form)", "POST request with Inertia", '#3498DB'),  # Blue - Common
+            ("$page.props.errors", "Access validation errors", '#3498DB'),  # Blue - Common in forms
+        ]
+        self.create_command_table("Inertia.js Integration", commands)
+
+    def add_livewire_commands(self):
+        """Add Livewire commands"""
+        commands = [
+            ("composer require livewire/livewire", "Install Livewire", '#27AE60'),  # Green - Laravel 11 modern
+            ("php artisan make:livewire Counter", "Create Livewire component", '#27AE60'),  # Green - Common
+            ("php artisan make:livewire Users/Index", "Create nested Livewire component", '#27AE60'),  # Green - Common
+            ("<livewire:counter />", "Render Livewire component", '#3498DB'),  # Blue - Used daily
+            ("@livewire('counter')", "Render with Blade directive", '#3498DB'),  # Blue - Common alternative
+            ("public $count = 0;", "Define public property", '#3498DB'),  # Blue - Basic usage
+            ("public function increment() { $this->count++; }", "Define action method", '#3498DB'),  # Blue - Common
+            ("wire:click='increment'", "Wire click event", '#3498DB'),  # Blue - Very common
+            ("wire:model='name'", "Two-way data binding", '#3498DB'),  # Blue - Very common
+            ("wire:submit.prevent='save'", "Wire form submission", '#3498DB'),  # Blue - Common in forms
+            ("$this->validate(['name' => 'required']);", "Validate in Livewire", '#3498DB'),  # Blue - Common
+            ("$this->emit('userSaved');", "Emit event", '#3498DB'),  # Blue - Common for communication
+            ("protected $listeners = ['userSaved' => 'refreshUsers'];", "Listen to events", '#3498DB'),  # Blue - Common
+            ("wire:loading", "Show loading state", '#3498DB'),  # Blue - Common UX
+            ("wire:offline", "Show offline state", '#E74C3C'),  # Red - Advanced UX
+            ("$this->skipRender();", "Skip component re-render", '#E74C3C'),  # Red - Performance optimization
+        ]
+        self.create_command_table("Livewire Components", commands)
+
     def add_tips_section(self):
         """Add tips and best practices"""
         tips_text = """
-        <b>💡 Laravel Tips & Best Practices:</b><br/>
+        <b>💡 Laravel 11 Tips & Best Practices:</b><br/>
         <br/>
-        • Use Eloquent relationships to simplify queries<br/>
+        • Use Eloquent relationships and eager loading for performance<br/>
         • Always validate user input using Form Requests<br/>
-        • Use middleware for cross-cutting concerns<br/>
-        • Leverage Laravel's built-in authentication<br/>
-        • Use resource controllers for CRUD operations<br/>
-        • Implement proper error handling and logging<br/>
-        • Use database seeders for initial data<br/>
-        • Write comprehensive tests for your application<br/>
-        • Use Laravel's caching mechanisms<br/>
-        • Follow PSR standards for code organization<br/>
-        • Use environment variables for configuration<br/>
-        • Implement proper database indexing<br/>
+        • Leverage middleware for cross-cutting concerns (auth, CORS, etc.)<br/>
+        • Use Laravel Sanctum for API authentication<br/>
+        • Implement proper error handling with custom exception classes<br/>
+        • Use database seeders and factories for testing data<br/>
+        • Write comprehensive tests (Feature + Unit tests)<br/>
+        • Use Laravel's built-in caching mechanisms (Redis recommended)<br/>
+        • Follow PSR standards and use Laravel Pint for code formatting<br/>
+        • Use environment variables for all configuration<br/>
+        • Implement proper database indexing and query optimization<br/>
         • Use Laravel's queue system for background jobs<br/>
+        • Use Laravel Horizon for queue monitoring in production<br/>
+        • Leverage Laravel Sail for consistent development environments<br/>
         <br/>
-        <b>🔧 Useful Packages:</b><br/>
+        <b>� Laravel 11 New Features:</b><br/>
+        • Improved artisan commands with better UX<br/>
+        • Enhanced API resource handling<br/>
+        • Better Docker integration with Sail<br/>
+        • Improved testing capabilities<br/>
+        • Enhanced security features<br/>
+        <br/>
+        <b>🔧 Essential Packages for Laravel 11:</b><br/>
         • Laravel Debugbar (barryvdh/laravel-debugbar)<br/>
         • Laravel IDE Helper (barryvdh/laravel-ide-helper)<br/>
         • Laravel Telescope (laravel/telescope)<br/>
-        • Laravel Sanctum for API authentication<br/>
-        • Spatie Laravel packages for common tasks
+        • Laravel Horizon (laravel/horizon)<br/>
+        • Laravel Sanctum (built-in API authentication)<br/>
+        • Laravel Pint (built-in code formatting)<br/>
+        • Spatie Laravel packages (permissions, media, etc.)<br/>
+        • Laravel Livewire for reactive components<br/>
+        • Inertia.js for modern SPA development
         """
 
         tips_para = Paragraph(tips_text, self.styles['Normal'])
@@ -453,13 +617,13 @@ class LaravelCheatSheetPDF:
         # Create a colored background table for tips
         tips_table = Table([[tips_para]], colWidths=[17*cm])
         tips_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), HexColor('#FFF5E6')),
+            ('BACKGROUND', (0, 0), (-1, -1), HexColor('#F0FFF0')),  # Light green background
             ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#1B4F72')),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('GRID', (0, 0), (-1, -1), 1, HexColor('#F39C12')),
+            ('GRID', (0, 0), (-1, -1), 1, HexColor('#27AE60')),  # Green border
             ('LEFTPADDING', (0, 0), (-1, -1), 12),
             ('RIGHTPADDING', (0, 0), (-1, -1), 12),
             ('TOPPADDING', (0, 0), (-1, -1), 10),
@@ -475,23 +639,46 @@ class LaravelCheatSheetPDF:
         self.add_installation_commands()
         self.add_artisan_commands()
         self.add_routing_commands()
-        self.add_database_commands()
-        self.add_eloquent_commands()
-
+        
         # Page break
         self.story.append(PageBreak())
 
-        # Page 2
+        # Page 2  
+        self.add_database_commands()
+        self.add_eloquent_commands()
         self.add_blade_commands()
+        
+        # Page break
+        self.story.append(PageBreak())
+        
+        # Page 3
         self.add_auth_commands()
         self.add_middleware_commands()
+        self.add_validation_commands()
+        self.add_api_commands()
+        
+        # Page break
+        self.story.append(PageBreak())
+        
+        # Page 4
+        self.add_queue_commands()
+        self.add_cache_commands()
+        self.add_storage_commands()
+        self.add_sail_commands()
         self.add_testing_commands()
+        
+        # Page break
+        self.story.append(PageBreak())
+        
+        # Page 5
+        self.add_inertia_commands()
+        self.add_livewire_commands()
         self.add_deployment_commands()
         self.add_tips_section()
 
         # Build PDF
         self.doc.build(self.story)
-        print(f"✅ Laravel Cheat Sheet PDF generated successfully: {self.filename}")
+        print(f"✅ Laravel 11 Cheat Sheet PDF generated successfully: {self.filename}")
         return self.filename
 
 def main():
@@ -503,9 +690,10 @@ def main():
         # Generate the PDF
         filename = pdf_generator.generate_pdf()
 
-        print(f"\n🚀 Laravel Cheat Sheet PDF created: {filename}")
+        print(f"\n🚀 Laravel 11 Cheat Sheet PDF created: {filename}")
         print(f"📄 File size: {os.path.getsize(filename)} bytes")
         print(f"📅 Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"📋 Features: Installation, Artisan, Routing, Database, Eloquent, Blade, Auth, API, Queues, Cache, Storage, Docker Sail, Inertia.js, Livewire, Testing & Deployment")
 
         # Try to open the PDF (platform-specific)
         import platform
